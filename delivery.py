@@ -123,6 +123,7 @@ def assign_packages_to_agents(data):
 def simulate_agent_route(agent_position, packages, warehouse_locations):
     total_distance = 0
     current_position = agent_position
+    route_points = [current_position]
 
     # creating group of packages by warehouse
     warehouse_packages = defaultdict(list)
@@ -137,6 +138,7 @@ def simulate_agent_route(agent_position, packages, warehouse_locations):
 
         total_distance += euclidean(current_position, warehouse_position)
         current_position = warehouse_position
+        route_points.append(current_position)
 
         # deliver packages simple nearest neighbour from warehouse
         destinations = []
@@ -161,8 +163,35 @@ def simulate_agent_route(agent_position, packages, warehouse_locations):
 
             total_distance += euclidean(current_position, destination)
             current_position = destination
+            route_points.append(current_position)
 
-    return total_distance
+    return total_distance, route_points
+
+
+def print_ascii_route(agent_id, route_points):
+    #  simple route preview in console
+    if not route_points:
+        print(f"{agent_id}: no route")
+        return
+
+    points = []
+    for x, y in route_points:
+        points.append((int(round(x / 10)), int(round(y / 10))))
+
+    min_x = min(p[0] for p in points)
+    max_x = max(p[0] for p in points)
+    min_y = min(p[1] for p in points)
+    max_y = max(p[1] for p in points)
+
+    print(f"\nRoute for {agent_id}:")
+    for y in range(max_y, min_y - 1, -1):
+        row = []
+        for x in range(min_x, max_x + 1):
+            if (x, y) in points:
+                row.append('*')
+            else:
+                row.append('.')
+        print(' '.join(row))
 
 # generating the report
 def generate_report(data):
@@ -173,8 +202,9 @@ def generate_report(data):
     for a in agents:
         pkgs = assigned.get(a, [])
         total_distance = 0.0
+        route_points = []
         if pkgs:
-            total_distance = simulate_agent_route(agent_coords[a], pkgs, wh_coords)
+            total_distance, route_points = simulate_agent_route(agent_coords[a], pkgs, wh_coords)
         delivered = len(pkgs)
         efficiency = total_distance / delivered if delivered else 0.0
         report[a] = {
@@ -182,6 +212,8 @@ def generate_report(data):
             'total_distance': round(total_distance, 2),
             'efficiency': round(efficiency, 2)
         }
+        if route_points:
+            print_ascii_route(a, route_points)
     # here we are determining the best agent by finding avd distance per package . if same or zero deleveries then we prefer with more deliveries
     candidates = [ (a, v) for a, v in report.items() if v['packages_delivered']>0 ]
     if candidates:
