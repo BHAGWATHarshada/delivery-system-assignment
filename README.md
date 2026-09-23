@@ -30,6 +30,12 @@ Get-ChildItem ".\test_cases" -Filter *.json | ForEach-Object {
 }
 ```
 
+To export the top performer as CSV (as per provided test case):
+
+```powershell
+python .\main.py .\base_case.json -o .\report.json --csv .\top_performer.csv
+```
+
 ## What the program does
 - Reads the JSON file
 - Converts all coordinates into normal `(x, y)` format

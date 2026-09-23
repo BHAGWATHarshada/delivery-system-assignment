@@ -192,3 +192,18 @@ def generate_report(data):
 
     report['best_agent'] = best
     return report
+
+#  top performer feature addition
+def export_top_performer_csv(report, output_path):
+    
+    if not report or 'best_agent' not in report:
+        return
+
+    best_agent = report['best_agent']
+    best_data = report.get(best_agent, {})
+
+    with open(output_path, 'w', newline='', encoding='utf-8') as file:
+        file.write('agent,packages_delivered,total_distance,efficiency\n')
+        file.write(
+            f"{best_agent},{best_data.get('packages_delivered', 0)},{best_data.get('total_distance', 0.0)},{best_data.get('efficiency', 0.0)}\n"
+        )
